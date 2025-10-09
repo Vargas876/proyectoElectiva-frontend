@@ -1,7 +1,7 @@
 // src/context/SocketContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { useAuth } from './AuthContext'; // ✅ AGREGAR
+import { useAuth } from './AuthContext';
 
 const SocketContext = createContext();
 
@@ -10,10 +10,9 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
-  const { user } = useAuth(); // ✅ AGREGAR
+  const { user } = useAuth();
 
   useEffect(() => {
-    // ✅ SOLO conectar si el usuario está autenticado
     if (user) {
       const socketInstance = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
@@ -42,18 +41,48 @@ export const SocketProvider = ({ children }) => {
         socketInstance.disconnect();
       };
     } else {
-      // Si no hay usuario, desconectar socket si existe
       if (socket) {
         socket.disconnect();
         setSocket(null);
         setConnected(false);
       }
     }
-  }, [user]); // ✅ CAMBIAR dependencia
+  }, [user]);
+
+  // ✅ AGREGAR función joinTrip
+  const joinTrip = (tripId) => {
+    if (socket && connected) {
+      socket.emit('join_trip', tripId);
+      console.log(`👤 Unido al viaje: ${tripId}`);
+    } else {
+      console.warn('⚠️ Socket no conectado, no se puede unir al viaje');
+    }
+  };
+
+  // ✅ AGREGAR función leaveTrip
+  const leaveTrip = (tripId) => {
+    if (socket && connected) {
+      socket.emit('leave_trip', tripId);
+      console.log(`👋 Salió del viaje: ${tripId}`);
+    }
+  };
+
+  // ✅ AGREGAR función sendMessage
+  const sendMessage = (tripId, message) => {
+    if (socket && connected) {
+      socket.emit('send_message', { tripId, message });
+      console.log(`📤 Mensaje enviado al viaje ${tripId}`);
+    } else {
+      console.warn('⚠️ Socket no conectado, no se puede enviar mensaje');
+    }
+  };
 
   const value = {
     socket,
     connected,
+    joinTrip,      // ✅ EXPORTAR
+    leaveTrip,     // ✅ EXPORTAR
+    sendMessage    // ✅ EXPORTAR
   };
 
   return (

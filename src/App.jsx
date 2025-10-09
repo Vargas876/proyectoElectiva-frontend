@@ -5,7 +5,8 @@ import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { SocketProvider } from './context/SocketContext';
 
-// Pages
+// Páginas
+import DriverProfile from './components/driver/DriverProfile'; // ✅ AGREGAR
 import Dashboard from './pages/Dashboard';
 import Drivers from './pages/Drivers';
 import Home from './pages/Home';
@@ -18,14 +19,11 @@ import Rewards from './pages/Rewards';
 import TripDetails from './pages/TripDetails';
 import Trips from './pages/Trips';
 
-// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  
   if (!token) {
     return <Navigate to="/login" replace />;
   }
-  
   return children;
 };
 
@@ -34,14 +32,19 @@ function App() {
     <AuthProvider>
       <SocketProvider>
         <NotificationProvider>
-          <Router>
+          <Router
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true
+            }}
+          >
             <Routes>
-              {/* Public Routes */}
+              {/* Rutas públicas */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
-              {/* Protected Routes */}
+              {/* Rutas protegidas */}
               <Route
                 path="/dashboard"
                 element={
@@ -55,6 +58,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Drivers />
+                  </ProtectedRoute>
+                }
+              />
+              {/* ✅ AGREGAR ESTA RUTA */}
+              <Route
+                path="/drivers/:id"
+                element={
+                  <ProtectedRoute>
+                    <DriverProfile />
                   </ProtectedRoute>
                 }
               />
@@ -107,7 +119,7 @@ function App() {
                 }
               />
 
-              {/* 404 Route */}
+              {/* Ruta 404 */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Router>
