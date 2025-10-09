@@ -1,4 +1,3 @@
-// src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authApi } from '../api/authApi';
 
@@ -36,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       
       console.log('📥 Respuesta del backend:', response);
       
-      // ✅ CAMBIO: Verificar que response tenga success y token
+      // Verificar que response tenga success y token
       if (response && response.success && response.token && response.driver) {
         const { token, driver } = response;
         

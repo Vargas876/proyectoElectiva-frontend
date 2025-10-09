@@ -1,4 +1,3 @@
-// src/api/tripApi.js
 import axios from './axios';
 
 export const tripApi = {

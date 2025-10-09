@@ -1,4 +1,3 @@
-// src/context/NotificationContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { notificationApi } from '../api/notificationApi';
 import { useAuth } from './AuthContext'; // ✅ AGREGAR
@@ -11,17 +10,17 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const { socket } = useSocket();
-  const { user } = useAuth(); // ✅ AGREGAR
+  const { user } = useAuth(); 
 
   useEffect(() => {
-    // ✅ SOLO cargar notificaciones si el usuario está autenticado
+    //  SOLO cargar notificaciones si el usuario está autenticado
     if (user) {
       fetchNotifications();
     }
-  }, [user]); // ✅ CAMBIAR dependencia
+  }, [user]); 
 
   useEffect(() => {
-    // ✅ SOLO escuchar socket si hay usuario autenticado
+    // SOLO escuchar socket si hay usuario autenticado
     if (socket && user) {
       socket.on('new_notification', (notification) => {
         setNotifications(prev => [notification, ...prev]);

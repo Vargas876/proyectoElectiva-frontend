@@ -1,4 +1,3 @@
-// src/components/driver/DriverProfile.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { driverApi } from '../../api/driverApi';

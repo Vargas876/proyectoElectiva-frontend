@@ -1,4 +1,3 @@
-// src/pages/Rewards.jsx
 import React from 'react';
 import Navbar from '../components/common/Navbar';
 import Leaderboard from '../components/rewards/Leaderboard';

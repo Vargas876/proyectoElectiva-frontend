@@ -1,4 +1,3 @@
-// src/context/SocketContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
@@ -49,7 +48,7 @@ export const SocketProvider = ({ children }) => {
     }
   }, [user]);
 
-  // ✅ AGREGAR función joinTrip
+  // AGREGAR función joinTrip
   const joinTrip = (tripId) => {
     if (socket && connected) {
       socket.emit('join_trip', tripId);
@@ -59,7 +58,7 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
-  // ✅ AGREGAR función leaveTrip
+  // AGREGAR función leaveTrip
   const leaveTrip = (tripId) => {
     if (socket && connected) {
       socket.emit('leave_trip', tripId);
@@ -67,7 +66,7 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
-  // ✅ AGREGAR función sendMessage
+  //  AGREGAR función sendMessage
   const sendMessage = (tripId, message) => {
     if (socket && connected) {
       socket.emit('send_message', { tripId, message });
@@ -80,9 +79,9 @@ export const SocketProvider = ({ children }) => {
   const value = {
     socket,
     connected,
-    joinTrip,      // ✅ EXPORTAR
-    leaveTrip,     // ✅ EXPORTAR
-    sendMessage    // ✅ EXPORTAR
+    joinTrip,      
+    leaveTrip,    
+    sendMessage    
   };
 
   return (

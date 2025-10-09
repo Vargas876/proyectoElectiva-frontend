@@ -1,4 +1,3 @@
-// src/api/notificationApi.js
 import axios from './axios';
 
 export const notificationApi = {

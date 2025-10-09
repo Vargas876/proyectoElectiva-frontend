@@ -1,4 +1,3 @@
-// Crear un hook personalizado: src/hooks/useAsync.js
 import { useCallback, useState } from 'react';
 
 export const useAsync = () => {

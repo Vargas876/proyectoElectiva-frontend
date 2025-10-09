@@ -1,4 +1,3 @@
-// src/pages/Trips.jsx
 import React, { useState } from 'react';
 import Footer from '../components/common/Footer';
 import Modal from '../components/common/Modal';

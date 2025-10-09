@@ -1,4 +1,3 @@
-// src/components/rewards/BadgeDisplay.jsx
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import React from 'react';

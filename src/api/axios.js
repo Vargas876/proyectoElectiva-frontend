@@ -1,4 +1,3 @@
-// src/api/axios.js
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -25,10 +24,8 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// ✅ INTERCEPTOR CORREGIDO
 axiosInstance.interceptors.response.use(
   (response) => {
-    // ✅ CAMBIO: Devolver response.data directamente
     return response.data;
   },
   (error) => {

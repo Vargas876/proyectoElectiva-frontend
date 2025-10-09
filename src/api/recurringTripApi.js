@@ -1,4 +1,3 @@
-// src/api/recurringTripApi.js
 import axios from './axios';
 
 export const recurringTripApi = {

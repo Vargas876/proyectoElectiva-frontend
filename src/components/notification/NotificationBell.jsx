@@ -1,4 +1,3 @@
-// src/components/notification/NotificationBell.jsx
 import React, { useState } from 'react';
 import { useNotifications } from '../../context/NotificationContext';
 import NotificationList from './NotificationList';

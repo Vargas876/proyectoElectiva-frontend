@@ -1,4 +1,3 @@
-// src/components/driver/DriverList.jsx
 import React, { useEffect, useState } from 'react';
 import { driverApi } from '../../api/driverApi';
 import ErrorMessage from '../common/ErrorMessage';

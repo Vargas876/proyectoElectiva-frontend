@@ -1,4 +1,3 @@
-// src/api/reviewApi.js
 import axios from './axios';
 
 export const reviewApi = {

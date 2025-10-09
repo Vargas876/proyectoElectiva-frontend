@@ -1,4 +1,3 @@
-// src/components/common/ErrorMessage.jsx
 import React from 'react';
 
 const ErrorMessage = ({ message, onRetry, onDismiss }) => {

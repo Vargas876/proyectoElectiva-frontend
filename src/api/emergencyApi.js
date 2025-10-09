@@ -1,4 +1,3 @@
-// src/api/emergencyApi.js
 import axios from './axios';
 
 export const emergencyApi = {

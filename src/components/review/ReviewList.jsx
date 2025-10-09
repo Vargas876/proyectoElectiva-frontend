@@ -1,4 +1,3 @@
-// src/components/review/ReviewList.jsx
 import React, { useEffect, useState } from 'react';
 import { reviewApi } from '../../api/reviewApi';
 import ReviewCard from './ReviewCard';

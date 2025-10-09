@@ -1,4 +1,3 @@
-// src/components/rewards/Leaderboard.jsx
 import React, { useEffect, useState } from 'react';
 import { rewardApi } from '../../api/rewardApi';
 

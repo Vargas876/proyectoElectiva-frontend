@@ -1,4 +1,3 @@
-// src/components/common/Modal.jsx
 import React, { useEffect } from 'react';
 
 const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {

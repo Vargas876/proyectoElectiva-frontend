@@ -1,4 +1,3 @@
-// src/pages/Profile.jsx
 import React, { useEffect, useState } from 'react';
 import { driverApi } from '../api/driverApi';
 import ErrorMessage from '../components/common/ErrorMessage';

@@ -1,4 +1,3 @@
-// src/components/rewards/RewardsCard.jsx
 import React, { useEffect, useState } from 'react';
 import { rewardApi } from '../../api/rewardApi';
 import BadgeDisplay from './BadgeDisplay';

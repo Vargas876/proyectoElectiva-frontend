@@ -1,4 +1,3 @@
-// src/pages/RecurringTrips.jsx
 import React, { useEffect, useState } from 'react';
 import { recurringTripApi } from '../api/recurringTripApi';
 import Navbar from '../components/common/Navbar';

@@ -1,4 +1,3 @@
-// src/components/trip/TripChat.jsx
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import React, { useEffect, useRef, useState } from 'react';

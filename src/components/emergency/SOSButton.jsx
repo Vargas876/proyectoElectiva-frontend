@@ -1,4 +1,3 @@
-// src/components/emergency/SOSButton.jsx
 import React, { useState } from 'react';
 import { emergencyApi } from '../../api/emergencyApi';
 import { useSocket } from '../../context/SocketContext';

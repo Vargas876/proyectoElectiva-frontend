@@ -1,4 +1,3 @@
-// src/utils/formatters.js
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 

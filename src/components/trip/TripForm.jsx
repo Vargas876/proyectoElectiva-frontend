@@ -1,4 +1,3 @@
-// src/components/trip/TripForm.jsx
 import React, { useState } from 'react';
 import { tripApi } from '../../api/tripApi';
 import { useAuth } from '../../context/AuthContext';

@@ -1,5 +1,3 @@
-// src/utils/constants.js
-
 // Estados de viaje
 export const TRIP_STATUS = {
     SCHEDULED: 'scheduled',

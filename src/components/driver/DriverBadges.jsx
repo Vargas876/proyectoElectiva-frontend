@@ -1,4 +1,3 @@
-// src/components/driver/DriverBadges.jsx
 import React from 'react';
 import BadgeDisplay from '../rewards/BadgeDisplay';
 

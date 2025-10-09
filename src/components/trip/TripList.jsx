@@ -1,4 +1,3 @@
-// src/components/trip/TripList.jsx
 import React, { useEffect, useState } from 'react';
 import { tripApi } from '../../api/tripApi';
 import ErrorMessage from '../common/ErrorMessage';

@@ -1,4 +1,3 @@
-// src/api/rewardApi.js
 import axios from './axios';
 
 export const rewardApi = {
