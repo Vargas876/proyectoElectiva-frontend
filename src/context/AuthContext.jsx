@@ -1,94 +1,87 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { authApi } from '../api/authApi';
+import React, { createContext, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { authAPI } from '../services/api';
+import { disconnectSocket, initializeSocket } from '../services/socket';
 
-const AuthContext = createContext();
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-};
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [driver, setDriver] = useState(null);
-  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedDriver = localStorage.getItem('driver');
+    const verifyToken = async () => {
+      if (token) {
+        try {
+          const response = await authAPI.verify();
+          setUser(response.data.user);
+          initializeSocket(token);
+        } catch (error) {
+          console.error('Token inválido', error);
+          logout();
+        }
+      }
+      setLoading(false);
+    };
 
-    if (storedToken && storedDriver) {
-      setToken(storedToken);
-      setDriver(JSON.parse(storedDriver));
-    }
-    setLoading(false);
-  }, []);
+    verifyToken();
+  }, [token]);
 
-  const login = async (email, license_number) => {
+  const login = async (credentials) => {
     try {
-      const response = await authApi.login(email, license_number);
-      const { token, driver } = response;
+      const response = await authAPI.login(credentials);
+      const { token, user } = response.data;
       
       localStorage.setItem('token', token);
-      localStorage.setItem('driver', JSON.stringify(driver));
+      localStorage.setItem('user', JSON.stringify(user));
       
       setToken(token);
-      setDriver(driver);
+      setUser(user);
+      initializeSocket(token);
       
-      return { success: true };
+      toast.success('¡Bienvenido!');
+      return { success: true, user };
     } catch (error) {
-      console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Error al iniciar sesión' 
-      };
+      const message = error.response?.data?.message || 'Error al iniciar sesión';
+      toast.error(message);
+      return { success: false, error: message };
     }
   };
 
-  const register = async (data) => {
+  const register = async (userData) => {
     try {
-      const response = await authApi.register(data);
-      const { token, driver } = response;
+      const response = await authAPI.register(userData);
+      const { token, user } = response.data;
       
       localStorage.setItem('token', token);
-      localStorage.setItem('driver', JSON.stringify(driver));
+      localStorage.setItem('user', JSON.stringify(user));
       
       setToken(token);
-      setDriver(driver);
+      setUser(user);
+      initializeSocket(token);
       
-      return { success: true };
+      toast.success('¡Registro exitoso!');
+      return { success: true, user };
     } catch (error) {
-      console.error('Register error:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Error al registrarse' 
-      };
+      const message = error.response?.data?.message || 'Error al registrarse';
+      toast.error(message);
+      return { success: false, error: message };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('driver');
+    localStorage.removeItem('user');
     setToken(null);
-    setDriver(null);
-  };
-
-  const value = {
-    driver,
-    token,
-    loading,
-    isAuthenticated: !!token,
-    login,
-    register,
-    logout
+    setUser(null);
+    disconnectSocket();
+    toast.success('Sesión cerrada');
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+      {children}
     </AuthContext.Provider>
   );
 };
