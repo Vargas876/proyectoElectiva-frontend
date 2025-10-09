@@ -7,11 +7,11 @@ const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
-// Interceptor de Request - Agregar token automáticamente
+// Interceptor para agregar token JWT en cada request
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -25,40 +25,40 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Interceptor de Response - Manejar errores globalmente
+// ✅ INTERCEPTOR CORREGIDO
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // ✅ CAMBIO: Devolver response.data directamente
+    return response.data;
+  },
   (error) => {
     if (error.response) {
       // El servidor respondió con un código de error
-      const { status, data } = error.response;
+      const message = error.response.data?.message || error.response.data?.error || 'Error en la solicitud';
       
-      if (status === 401) {
-        // Token inválido o expirado
+      console.error('Error del servidor:', message);
+      
+      // Si es 401 (no autorizado), limpiar token y redirigir al login
+      if (error.response.status === 401) {
         localStorage.removeItem('token');
-        localStorage.removeItem('driver');
+        localStorage.removeItem('user');
         window.location.href = '/login';
-      } else if (status === 403) {
-        // Sin permisos
-        console.error('Acceso denegado');
-      } else if (status === 404) {
-        console.error('Recurso no encontrado');
-      } else if (status >= 500) {
-        console.error('Error del servidor');
       }
       
-      return Promise.reject(data || error);
+      // Si es 403 (prohibido)
+      if (error.response.status === 403) {
+        console.error('Acceso denegado');
+      }
+      
+      return Promise.reject(new Error(message));
     } else if (error.request) {
-      // La petición se hizo pero no hubo respuesta
+      // La solicitud fue hecha pero no hubo respuesta
       console.error('Error de red - sin respuesta del servidor');
-      return Promise.reject({
-        success: false,
-        message: 'Error de conexión. Verifica tu internet.'
-      });
+      return Promise.reject(new Error('No se pudo conectar con el servidor'));
     } else {
-      // Algo pasó al configurar la petición
-      console.error('Error:', error.message);
-      return Promise.reject(error);
+      // Algo sucedió al configurar la solicitud
+      console.error('Error de configuración:', error.message);
+      return Promise.reject(new Error(error.message || 'Error desconocido'));
     }
   }
 );

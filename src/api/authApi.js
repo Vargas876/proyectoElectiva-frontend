@@ -5,6 +5,7 @@ export const authApi = {
   // Login
   login: async (email, license_number) => {
     try {
+      // axios ya devuelve response.data gracias al interceptor
       return await axios.post('/auth/login', { email, license_number });
     } catch (error) {
       throw error;

@@ -1,84 +1,63 @@
 // src/context/SocketContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
+import { useAuth } from './AuthContext'; // ✅ AGREGAR
 
 const SocketContext = createContext();
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
+  const { user } = useAuth(); // ✅ AGREGAR
 
   useEffect(() => {
-    // Crear conexión de socket
-    const newSocket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000
-    });
+    // ✅ SOLO conectar si el usuario está autenticado
+    if (user) {
+      const socketInstance = io(SOCKET_URL, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
 
-    newSocket.on('connect', () => {
-      console.log('✅ Socket conectado:', newSocket.id);
-      setConnected(true);
-    });
+      socketInstance.on('connect', () => {
+        console.log('✅ Socket conectado:', socketInstance.id);
+        setConnected(true);
+      });
 
-    newSocket.on('disconnect', () => {
-      console.log('❌ Socket desconectado');
-      setConnected(false);
-    });
+      socketInstance.on('disconnect', () => {
+        console.log('❌ Socket desconectado');
+        setConnected(false);
+      });
 
-    newSocket.on('connect_error', (error) => {
-      console.error('Error de conexión Socket:', error);
-      setConnected(false);
-    });
+      socketInstance.on('connect_error', (error) => {
+        console.error('❌ Error de conexión Socket.IO:', error);
+      });
 
-    setSocket(newSocket);
+      setSocket(socketInstance);
 
-    // Cleanup al desmontar
-    return () => {
-      if (newSocket) {
-        newSocket.disconnect();
+      return () => {
+        socketInstance.disconnect();
+      };
+    } else {
+      // Si no hay usuario, desconectar socket si existe
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
+        setConnected(false);
       }
-    };
-  }, []);
-
-  const joinTrip = (tripId) => {
-    if (socket && connected) {
-      socket.emit('join-trip', tripId);
     }
-  };
+  }, [user]); // ✅ CAMBIAR dependencia
 
-  const sendMessage = (tripId, message, sender) => {
-    if (socket && connected) {
-      socket.emit('send-message', { tripId, message, sender });
-    }
-  };
-
-  const updateLocation = (tripId, location) => {
-    if (socket && connected) {
-      socket.emit('update-location', { tripId, location });
-    }
-  };
-
-  const triggerSOS = (tripId, driverId, location) => {
-    if (socket && connected) {
-      socket.emit('trigger-sos', { tripId, driverId, location });
-    }
+  const value = {
+    socket,
+    connected,
   };
 
   return (
-    <SocketContext.Provider
-      value={{
-        socket,
-        connected,
-        joinTrip,
-        sendMessage,
-        updateLocation,
-        triggerSOS
-      }}
-    >
+    <SocketContext.Provider value={value}>
       {children}
     </SocketContext.Provider>
   );

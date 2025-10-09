@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
-    license_number: '' // ✅ CORREGIDO: license_number (no licensenumber)
+    license_number: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -20,6 +20,8 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
+    // Limpiar error al escribir
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -27,15 +29,22 @@ const Login = () => {
     setLoading(true);
     setError('');
 
+    console.log('📤 Enviando datos de login:', formData);
+
     try {
       const result = await login(formData.email, formData.license_number);
       
+      console.log('📥 Resultado del login:', result);
+      
       if (result.success) {
+        console.log('✅ Login exitoso, redirigiendo...');
         navigate('/dashboard');
       } else {
+        console.error('❌ Login falló:', result.error);
         setError(result.error || 'Error al iniciar sesión');
       }
     } catch (err) {
+      console.error('❌ Error inesperado:', err);
       setError(err.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
@@ -45,7 +54,6 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
       <div className="max-w-md w-full">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🚗</div>
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
@@ -56,10 +64,8 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Form Card */}
         <div className="bg-white rounded-lg shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                 <div className="flex items-center">
@@ -71,7 +77,6 @@ const Login = () => {
               </div>
             )}
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email
@@ -83,11 +88,10 @@ const Login = () => {
                 onChange={handleChange}
                 placeholder="tu@email.com"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* License Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Número de Licencia
@@ -97,17 +101,16 @@ const Login = () => {
                 name="license_number"
                 value={formData.license_number}
                 onChange={handleChange}
-                placeholder="ABC12345"
+                placeholder="COL12345"
                 required
                 maxLength={10}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Ingresa tu número de licencia de conducir
               </p>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -124,7 +127,6 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
@@ -134,7 +136,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Register Link */}
           <p className="text-center text-gray-600">
             ¿No tienes cuenta?{' '}
             <Link
@@ -146,20 +147,13 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Info Card */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start">
-            <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            <div>
-              <p className="text-sm text-blue-800 font-medium">
-                Sistema de Autenticación Simple
-              </p>
-              <p className="text-xs text-blue-700 mt-1">
-                Solo necesitas tu email y número de licencia para acceder
-              </p>
-            </div>
+          <p className="text-sm text-blue-800 font-medium mb-2">
+            🔐 Datos de prueba:
+          </p>
+          <div className="text-xs text-blue-700 space-y-1">
+            <p>Email: <code className="bg-blue-100 px-2 py-0.5 rounded">carlos.rodriguez@email.com</code></p>
+            <p>Licencia: <code className="bg-blue-100 px-2 py-0.5 rounded">COL12345</code></p>
           </div>
         </div>
       </div>
