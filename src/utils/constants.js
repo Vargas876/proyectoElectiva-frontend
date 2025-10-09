@@ -1,22 +1,28 @@
-export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-export const API_URL = import.meta.env.VITE_API_URL;
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+export const API_URL = import.meta.env.VITE_API_URL || 'https://proyectoelectiva-pyl0.onrender.com/api';
 
 export const TRIP_STATUS = {
-  PENDING: 'pending',
-  ACCEPTED: 'accepted',
+  SCHEDULED: 'scheduled',
+  IN_PROGRESS: 'in_progress',
   COMPLETED: 'completed',
-  CANCELLED: 'cancelled',
-  REJECTED: 'rejected'
+  CANCELLED: 'cancelled'
 };
 
-export const USER_ROLES = {
-  PASSENGER: 'passenger',
-  DRIVER: 'driver'
+export const DRIVER_STATUS = {
+  AVAILABLE: 'available',
+  BUSY: 'busy',
+  OFFLINE: 'offline'
 };
 
-// Coordenadas por defecto (Fusagasugá, Colombia)
-export const DEFAULT_CENTER = {
-  lat: 4.3369,
-  lng: -74.3639
+export const STATUS_LABELS = {
+  scheduled: 'Programado',
+  in_progress: 'En Progreso',
+  completed: 'Completado',
+  cancelled: 'Cancelado'
+};
+
+export const STATUS_COLORS = {
+  scheduled: 'badge-blue',
+  in_progress: 'badge-yellow',
+  completed: 'badge-green',
+  cancelled: 'badge-red'
 };

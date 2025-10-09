@@ -1,110 +1,90 @@
-import React from 'react';
-import { Toaster } from 'react-hot-toast';
-import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
 
-// Auth
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
-
-// Passenger
-import PassengerDashboard from './components/passenger/PassengerDashboard';
-import RequestTrip from './components/passenger/RequestTrip';
-import ViewOffers from './components/passenger/ViewOffers';
-
-// Driver
-import DriverDashboard from './components/driver/DriverDashboard';
-import MakeOffer from './components/driver/MakeOffer';
-
-// Shared
-import ProtectedRoute from './components/shared/ProtectedRoute';
+// Pages
+import CreateTrip from './pages/CreateTrip';
+import Dashboard from './pages/Dashboard';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Statistics from './pages/Statistics';
+import TripDetail from './pages/TripDetail';
+import Trips from './pages/Trips';
 
 function App() {
   return (
     <AuthProvider>
-      <SocketProvider>
-        <Router>
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#4ade80',
-                  secondary: '#fff',
-                },
-              },
-              error: {
-                duration: 4000,
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
-          
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
           <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
-            {/* Passenger Routes */}
+
+            {/* Protected Routes */}
             <Route
-              path="/passenger/dashboard"
+              path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['passenger']}>
-                  <PassengerDashboard />
+                <ProtectedRoute>
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/passenger/request-trip"
+              path="/trips"
               element={
-                <ProtectedRoute allowedRoles={['passenger']}>
-                  <RequestTrip />
+                <ProtectedRoute>
+                  <Trips />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/passenger/offers/:requestId"
+              path="/trips/:id"
               element={
-                <ProtectedRoute allowedRoles={['passenger']}>
-                  <ViewOffers />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Driver Routes */}
-            <Route
-              path="/driver/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['driver']}>
-                  <DriverDashboard />
+                <ProtectedRoute>
+                  <TripDetail />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/driver/make-offer/:requestId"
+              path="/create-trip"
               element={
-                <ProtectedRoute allowedRoles={['driver']}>
-                  <MakeOffer />
+                <ProtectedRoute>
+                  <CreateTrip />
                 </ProtectedRoute>
               }
             />
-            
-            {/* Default Route */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route
+              path="/statistics"
+              element={
+                <ProtectedRoute>
+                  <Statistics />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 404 */}
+            <Route
+              path="*"
+              element={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-6xl font-bold text-gray-300 mb-4">404</h1>
+                    <p className="text-xl text-gray-600 mb-4">Página no encontrada</p>
+                    <a href="/" className="btn btn-primary">
+                      Volver al Inicio
+                    </a>
+                  </div>
+                </div>
+              }
+            />
           </Routes>
-        </Router>
-      </SocketProvider>
+        </div>
+      </Router>
     </AuthProvider>
   );
 }

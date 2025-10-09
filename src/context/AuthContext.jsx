@@ -1,87 +1,94 @@
-import React, { createContext, useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
-import { authAPI } from '../services/api';
-import { disconnectSocket, initializeSocket } from '../services/socket';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { authApi } from '../api/authApi';
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [driver, setDriver] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    const verifyToken = async () => {
-      if (token) {
-        try {
-          const response = await authAPI.verify();
-          setUser(response.data.user);
-          initializeSocket(token);
-        } catch (error) {
-          console.error('Token inválido', error);
-          logout();
-        }
-      }
-      setLoading(false);
-    };
+    const storedToken = localStorage.getItem('token');
+    const storedDriver = localStorage.getItem('driver');
 
-    verifyToken();
-  }, [token]);
+    if (storedToken && storedDriver) {
+      setToken(storedToken);
+      setDriver(JSON.parse(storedDriver));
+    }
+    setLoading(false);
+  }, []);
 
-  const login = async (credentials) => {
+  const login = async (email, license_number) => {
     try {
-      const response = await authAPI.login(credentials);
-      const { token, user } = response.data;
+      const response = await authApi.login(email, license_number);
+      const { token, driver } = response;
       
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('driver', JSON.stringify(driver));
       
       setToken(token);
-      setUser(user);
-      initializeSocket(token);
+      setDriver(driver);
       
-      toast.success('¡Bienvenido!');
-      return { success: true, user };
+      return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Error al iniciar sesión';
-      toast.error(message);
-      return { success: false, error: message };
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Error al iniciar sesión' 
+      };
     }
   };
 
-  const register = async (userData) => {
+  const register = async (data) => {
     try {
-      const response = await authAPI.register(userData);
-      const { token, user } = response.data;
+      const response = await authApi.register(data);
+      const { token, driver } = response;
       
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('driver', JSON.stringify(driver));
       
       setToken(token);
-      setUser(user);
-      initializeSocket(token);
+      setDriver(driver);
       
-      toast.success('¡Registro exitoso!');
-      return { success: true, user };
+      return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Error al registrarse';
-      toast.error(message);
-      return { success: false, error: message };
+      console.error('Register error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Error al registrarse' 
+      };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('driver');
     setToken(null);
-    setUser(null);
-    disconnectSocket();
-    toast.success('Sesión cerrada');
+    setDriver(null);
+  };
+
+  const value = {
+    driver,
+    token,
+    loading,
+    isAuthenticated: !!token,
+    login,
+    register,
+    logout
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
