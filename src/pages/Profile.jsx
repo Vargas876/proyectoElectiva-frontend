@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from '../api/axios';
 import { driverApi } from '../api/driverApi';
 import ErrorMessage from '../components/common/ErrorMessage';
 import Footer from '../components/common/Footer';
@@ -7,6 +8,7 @@ import Navbar from '../components/common/Navbar';
 import DriverBadges from '../components/driver/DriverBadges';
 import ReviewList from '../components/review/ReviewList';
 import { useAuth } from '../context/AuthContext';
+
 
 const Profile = () => {
   const { user } = useAuth();
@@ -35,24 +37,68 @@ const Profile = () => {
   const fetchDriver = async () => {
     try {
       setLoading(true);
-      const response = await driverApi.getById(user.id);
-      setDriver(response.data);
-      setFormData({
-        name: response.data.name || '',
-        email: response.data.email || '',
-        phone: response.data.phone || '',
-        bio: response.data.bio || '',
-        vehicle_model: response.data.vehicle_model || '',
-        vehicle_color: response.data.vehicle_color || '',
-        vehicle_year: response.data.vehicle_year || ''
-      });
+      
+      console.log('🔄 ===== RECARGANDO DRIVER =====');
+      
+      // 1. Obtener datos del driver
+      const driverResponse = await driverApi.getById(user.id);
+      console.log('👤 Driver recargado:');
+      console.log('  - name:', driverResponse.data.name);
+      console.log('  - phone:', driverResponse.data.phone);
+      console.log('  - bio:', driverResponse.data.bio);
+      console.log('  - vehicle_model:', driverResponse.data.vehicle_model);
+      console.log('  - vehicle_color:', driverResponse.data.vehicle_color);
+      console.log('  - vehicle_year:', driverResponse.data.vehicle_year);
+      
+      // 2. Obtener rewards por separado
+      const rewardsResponse = await axios.get(`/rewards/driver/${user.id}`);
+      
+      // 3. Combinar ambos
+      const driverWithRewards = {
+        ...driverResponse.data,
+        rewards: rewardsResponse.data || {
+          points: 0,
+          level: 1,
+          badges: [],
+          achievements: []
+        }
+      };
+      
+      setDriver(driverWithRewards);
+      
+      // Actualizar formData con los nuevos valores
+      const newFormData = {
+        name: driverResponse.data.name || '',
+        email: driverResponse.data.email || '',
+        phone: driverResponse.data.phone || '',
+        bio: driverResponse.data.bio || '',
+        vehicle_model: driverResponse.data.vehicle_model || '',
+        vehicle_color: driverResponse.data.vehicle_color || '',
+        vehicle_year: driverResponse.data.vehicle_year || ''
+      };
+      
+      setFormData(newFormData);
+      
+      console.log('✅ FormData actualizado a:');
+      console.log('  - name:', newFormData.name);
+      console.log('  - phone:', newFormData.phone);
+      console.log('  - bio:', newFormData.bio);
+      console.log('  - vehicle_model:', newFormData.vehicle_model);
+      console.log('  - vehicle_color:', newFormData.vehicle_color);
+      console.log('  - vehicle_year:', newFormData.vehicle_year);
+      
+      console.log('🔄 ===== FIN RECARGA =====');
+      
     } catch (error) {
       setError(error.message || 'Error al cargar el perfil');
-      console.error('Error:', error);
+      console.error('❌ Error al recargar:', error);
     } finally {
       setLoading(false);
     }
   };
+  
+  
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,20 +112,56 @@ const Profile = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+  
     try {
-      await driverApi.update(user.id, formData);
-      alert('✅ Perfil actualizado exitosamente');
-      setEditing(false);
-      fetchDriver();
+      console.log('📝 ===== INICIO DE ACTUALIZACIÓN =====');
+      console.log('📝 ID del usuario:', user.id);
+      console.log('📝 Datos ANTES de enviar:');
+      console.log('  - name:', formData.name);
+      console.log('  - phone:', formData.phone);
+      console.log('  - bio:', formData.bio);
+      console.log('  - vehicle_model:', formData.vehicle_model);
+      console.log('  - vehicle_color:', formData.vehicle_color);
+      console.log('  - vehicle_year:', formData.vehicle_year);
+      
+      // Actualizar el perfil
+      const updateResponse = await driverApi.update(user.id, formData);
+      console.log('✅ Respuesta del backend:', updateResponse);
+      console.log('✅ Success:', updateResponse.success);
+      
+      // Ver datos actualizados devueltos por el backend
+      console.log('✅ Datos devueltos por el backend:');
+      console.log('  - name:', updateResponse.data.name);
+      console.log('  - phone:', updateResponse.data.phone);
+      console.log('  - bio:', updateResponse.data.bio);
+      console.log('  - vehicle_model:', updateResponse.data.vehicle_model);
+      console.log('  - vehicle_color:', updateResponse.data.vehicle_color);
+      console.log('  - vehicle_year:', updateResponse.data.vehicle_year);
+      
+      if (updateResponse.success) {
+        alert('✅ Perfil actualizado exitosamente');
+        setEditing(false);
+        
+        console.log('🔄 Recargando datos del driver...');
+        
+        // RECARGAR DATOS
+        await fetchDriver();
+      } else {
+        console.error('❌ Update no fue exitoso:', updateResponse);
+        setError('Error al actualizar el perfil');
+      }
+      
     } catch (error) {
+      console.error('❌ ===== ERROR EN ACTUALIZACIÓN =====');
+      console.error('❌ Error completo:', error);
       setError(error.message || 'Error al actualizar el perfil');
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
-
+  
+  
+  
   if (loading && !driver) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -136,7 +218,10 @@ const Profile = () => {
                   <span className="text-gray-600">•</span>
                   <span className="text-gray-600">{driver?.total_trips || 0} viajes</span>
                   <span className="text-gray-600">•</span>
-                  <span className="text-purple-600 font-semibold">Nivel {driver?.level || 1}</span>
+                  {/* ✅ USAR driver.rewards.level */}
+                  <span className="text-purple-600 font-semibold">
+                    Nivel {driver?.rewards?.level || 1}
+                  </span>
                 </div>
               </div>
             </div>
@@ -268,7 +353,7 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Stats Cards */}
+        {/* ✅ Stats Cards - ACTUALIZADAS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white">
             <p className="text-sm opacity-90">Total de Viajes</p>
@@ -280,11 +365,13 @@ const Profile = () => {
           </div>
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
             <p className="text-sm opacity-90">Nivel Actual</p>
-            <p className="text-4xl font-bold">{driver?.level || 1}</p>
+            {/* ✅ USAR driver.rewards.level */}
+            <p className="text-4xl font-bold">{driver?.rewards?.level || 1}</p>
           </div>
           <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg shadow-md p-6 text-white">
             <p className="text-sm opacity-90">Puntos</p>
-            <p className="text-4xl font-bold">{driver?.points || 0}</p>
+            {/* ✅ USAR driver.rewards.points */}
+            <p className="text-4xl font-bold">{driver?.rewards?.points || 0}</p>
           </div>
         </div>
 
@@ -400,7 +487,7 @@ const Profile = () => {
               <ReviewList driverId={driver.id} />
             )}
 
-            {/* Badges Tab */}
+            {/* ✅ Badges Tab - PASAR driver completo */}
             {activeTab === 'badges' && <DriverBadges driver={driver} />}
           </div>
         </div>

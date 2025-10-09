@@ -48,7 +48,7 @@ export const SocketProvider = ({ children }) => {
     }
   }, [user]);
 
-  // AGREGAR función joinTrip
+  // ✅ FUNCIÓN joinTrip
   const joinTrip = (tripId) => {
     if (socket && connected) {
       socket.emit('join_trip', tripId);
@@ -58,7 +58,7 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
-  // AGREGAR función leaveTrip
+  // ✅ FUNCIÓN leaveTrip
   const leaveTrip = (tripId) => {
     if (socket && connected) {
       socket.emit('leave_trip', tripId);
@@ -66,11 +66,11 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
-  //  AGREGAR función sendMessage
-  const sendMessage = (tripId, message) => {
+  // ✅ FUNCIÓN sendMessage (CORREGIDA)
+  const sendMessage = (tripId, messageData) => {
     if (socket && connected) {
-      socket.emit('send_message', { tripId, message });
-      console.log(`📤 Mensaje enviado al viaje ${tripId}`);
+      console.log('📤 Emitiendo send_message:', messageData);
+      socket.emit('send_message', messageData);
     } else {
       console.warn('⚠️ Socket no conectado, no se puede enviar mensaje');
     }
@@ -79,9 +79,9 @@ export const SocketProvider = ({ children }) => {
   const value = {
     socket,
     connected,
-    joinTrip,      
-    leaveTrip,    
-    sendMessage    
+    joinTrip,
+    leaveTrip,
+    sendMessage
   };
 
   return (

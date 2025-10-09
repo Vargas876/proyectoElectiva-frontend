@@ -1,146 +1,165 @@
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
 import React, { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 
-const TripChat = ({ tripId, currentUser }) => {
+const TripChat = ({ tripId }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
   const { socket, connected, joinTrip, sendMessage } = useSocket();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    if (connected && tripId) {
-      // Unirse a la sala del viaje
-      joinTrip(tripId);
-
-      // Escuchar nuevos mensajes
-      socket.on('new-message', (message) => {
-        setMessages(prev => [...prev, message]);
-        scrollToBottom();
-      });
-
-      return () => {
-        socket.off('new-message');
-      };
-    }
-  }, [connected, tripId, socket]);
-
+  // Auto-scroll al último mensaje
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = async (e) => {
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Unirse al viaje cuando el componente se monta
+  useEffect(() => {
+    if (connected && tripId) {
+      console.log('🔌 Uniéndose al chat del viaje:', tripId);
+      joinTrip(tripId);
+    }
+
+    return () => {
+      // Opcional: salir del viaje cuando el componente se desmonta
+      // socket?.emit('leave_trip', tripId);
+    };
+  }, [connected, tripId, joinTrip]);
+
+  // ✅ ESCUCHAR MENSAJES NUEVOS
+  useEffect(() => {
+    if (!socket) return;
+
+    console.log('👂 Escuchando evento new_message...');
+
+    const handleNewMessage = (data) => {
+      console.log('📨 Mensaje recibido en frontend:', data);
+      
+      setMessages((prevMessages) => [...prevMessages, {
+        id: Date.now() + Math.random(),
+        message: data.message,
+        sender: data.sender || { name: 'Usuario' },
+        timestamp: data.timestamp || new Date().toISOString(),
+        isOwn: data.sender?.id === user?.id
+      }]);
+    };
+
+    // Agregar listener
+    socket.on('new_message', handleNewMessage);
+
+    // Cleanup
+    return () => {
+      socket.off('new_message', handleNewMessage);
+    };
+  }, [socket, user]);
+
+  // ✅ ENVIAR MENSAJE
+  const handleSendMessage = (e) => {
     e.preventDefault();
     
-    if (!newMessage.trim() || !connected) return;
-
-    setSending(true);
-    try {
-      const messageData = {
-        text: newMessage.trim(),
-        sender_id: currentUser.id,
-        sender_name: currentUser.name
-      };
-
-      sendMessage(tripId, messageData, currentUser);
-      setNewMessage('');
-    } catch (error) {
-      console.error('Error al enviar mensaje:', error);
-    } finally {
-      setSending(false);
+    if (!newMessage.trim() || !connected) {
+      console.warn('⚠️ No se puede enviar: mensaje vacío o socket desconectado');
+      return;
     }
+
+    console.log('📤 Enviando mensaje:', newMessage);
+
+    const messageData = {
+      tripId,
+      message: newMessage.trim(),
+      sender: {
+        id: user?.id || 'unknown',
+        name: user?.name || 'Usuario',
+        email: user?.email
+      }
+    };
+
+    // Enviar mensaje via Socket.IO
+    sendMessage(tripId, messageData);
+
+    // Limpiar input
+    setNewMessage('');
   };
 
-  return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Chat del Viaje</h3>
-        <div className="flex items-center space-x-2">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              connected ? 'bg-green-500' : 'bg-red-500'
-            }`}
-          />
-          <span className="text-sm text-gray-600">
-            {connected ? 'Conectado' : 'Desconectado'}
-          </span>
-        </div>
+  if (!connected) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p className="text-yellow-800">⚠️ Conectando al chat...</p>
       </div>
+    );
+  }
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <h3 className="text-xl font-bold mb-4 text-gray-800">💬 Chat del Viaje</h3>
+
+      {/* Área de mensajes */}
+      <div className="border border-gray-200 rounded-lg h-96 overflow-y-auto p-4 mb-4 bg-gray-50">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8">
+          <div className="text-center text-gray-500 py-8">
             <p>No hay mensajes aún</p>
-            <p className="text-sm mt-2">Sé el primero en escribir</p>
+            <p className="text-sm">Sé el primero en enviar un mensaje</p>
           </div>
         ) : (
-          messages.map((message, index) => {
-            const isOwnMessage = message.sender_id === currentUser.id;
-            
-            return (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`mb-3 ${msg.isOwn ? 'text-right' : 'text-left'}`}
+            >
               <div
-                key={message.id || index}
-                className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                className={`inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  msg.isOwn
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-800'
+                }`}
               >
-                <div
-                  className={`max-w-xs px-4 py-2 rounded-lg ${
-                    isOwnMessage
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-900'
-                  }`}
-                >
-                  {!isOwnMessage && (
-                    <p className="text-xs font-semibold mb-1">
-                      {message.sender_name}
-                    </p>
-                  )}
-                  <p className="text-sm">{message.text}</p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      isOwnMessage ? 'text-blue-100' : 'text-gray-500'
-                    }`}
-                  >
-                    {formatDistanceToNow(new Date(message.timestamp), {
-                      addSuffix: true,
-                      locale: es
-                    })}
-                  </p>
-                </div>
+                <p className="font-semibold text-sm">{msg.sender.name}</p>
+                <p className="mt-1">{msg.message}</p>
+                <p className="text-xs mt-1 opacity-75">
+                  {new Date(msg.timestamp).toLocaleTimeString('es-CO', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
               </div>
-            );
-          })
+            </div>
+          ))
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Escribe un mensaje..."
-            disabled={!connected || sending}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          />
-          <button
-            type="submit"
-            disabled={!connected || sending || !newMessage.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {sending ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            ) : (
-              'Enviar'
-            )}
-          </button>
-        </div>
+      {/* Formulario de envío */}
+      <form onSubmit={handleSendMessage} className="flex gap-2">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Escribe un mensaje..."
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={!connected}
+        />
+        <button
+          type="submit"
+          disabled={!connected || !newMessage.trim()}
+          className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+        >
+          Enviar
+        </button>
       </form>
+
+      {/* Indicador de conexión */}
+      <div className="mt-2 text-xs text-gray-500">
+        {connected ? (
+          <span className="text-green-600">● Conectado</span>
+        ) : (
+          <span className="text-red-600">● Desconectado</span>
+        )}
+      </div>
     </div>
   );
 };
