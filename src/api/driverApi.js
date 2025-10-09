@@ -1,28 +1,80 @@
-import axios from '../utils/axios';
+// src/api/driverApi.js
+import axios from './axios';
 
 export const driverApi = {
-  getAll: async () => {
-    const response = await axios.get('/drivers');
-    return response.data;
+  // Obtener todos los conductores
+  getAll: async (params = {}) => {
+    try {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `/drivers?${queryString}` : '/drivers';
+      return await axios.get(url);
+    } catch (error) {
+      throw error;
+    }
   },
 
+  // Obtener un conductor por ID
   getById: async (id) => {
-    const response = await axios.get(`/drivers/${id}`);
-    return response.data;
+    try {
+      return await axios.get(`/drivers/${id}`);
+    } catch (error) {
+      throw error;
+    }
   },
 
-  create: async (data) => {
-    const response = await axios.post('/drivers', data);
-    return response.data;
+  // Crear un nuevo conductor
+  create: async (driverData) => {
+    try {
+      return await axios.post('/drivers', driverData);
+    } catch (error) {
+      throw error;
+    }
   },
 
-  update: async (id, data) => {
-    const response = await axios.put(`/drivers/${id}`, data);
-    return response.data;
+  // Actualizar un conductor
+  update: async (id, driverData) => {
+    try {
+      return await axios.put(`/drivers/${id}`, driverData);
+    } catch (error) {
+      throw error;
+    }
   },
 
+  // Eliminar un conductor
   delete: async (id) => {
-    const response = await axios.delete(`/drivers/${id}`);
-    return response.data;
+    try {
+      return await axios.delete(`/drivers/${id}`);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Buscar conductores
+  search: async (query) => {
+    try {
+      return await axios.get(`/drivers/search?q=${query}`);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Actualizar estado del conductor
+  updateStatus: async (id, status) => {
+    try {
+      return await axios.patch(`/drivers/${id}/status`, { status });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener estadísticas de un conductor
+  getStats: async (id) => {
+    try {
+      return await axios.get(`/drivers/${id}/stats`);
+    } catch (error) {
+      throw error;
+    }
   }
 };
+
+export default driverApi;
